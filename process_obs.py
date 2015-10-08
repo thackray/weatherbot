@@ -1,11 +1,12 @@
 import pandas as pd
 import numpy as np
-
+import os
 
 wban = 14739 #bos
-
-def read_raw_obs(obsfile,dbfile=None,wban=14739):
-    if dbfile:
+station = 'KBOS'
+def read_raw_obs(obsfile,wban=14739,station='KBOS'):
+    dbfile = 'data/%s_OBS.csv'%station
+    if os.path.exists(dbfile):
         db = pd.DataFrame.from_csv(dbfile, index_col=0)
     else:
         db = pd.DataFrame()
@@ -25,12 +26,9 @@ def read_raw_obs(obsfile,dbfile=None,wban=14739):
     
     outdb = pd.concat([db,newdb])
     print outdb
-    if dbfile:
-        outdb.to_csv(dbfile)
-    else:
-        outdb.to_csv('%s.db'%wban)
+    outdb.to_csv(dbfile)
     return
 
 
-read_raw_obs('data/obs/201001daily.txt',wban=wban)
-read_raw_obs('data/obs/201002daily.txt','14739.db',wban=wban)
+read_raw_obs('data/obs/201001daily.txt',wban=wban,station=station)
+read_raw_obs('data/obs/201002daily.txt',wban=wban,station=station)
