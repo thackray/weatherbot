@@ -25,10 +25,12 @@ def read_raw_obs(obsfile,wban=14739,station='KBOS'):
     newdb = pd.DataFrame.from_csv('temp', index_col=1)
     
     outdb = pd.concat([db,newdb])
-    print outdb
+#    print outdb
     outdb.to_csv(dbfile)
     return
 
 
-read_raw_obs('data/obs/201001daily.txt',wban=wban,station=station)
-read_raw_obs('data/obs/201002daily.txt',wban=wban,station=station)
+for eachfile in os.listdir('data/obs'):
+    if eachfile.endswith('daily.txt'):
+        print eachfile
+        read_raw_obs('data/obs/%s'%eachfile, wban=wban,station=station)
