@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import os
+from datetime import datetime, timedelta
 
 wban = 14739 #bos
 station = 'KBOS'
@@ -20,9 +21,14 @@ def read_raw_obs(obsfile,wban=14739,station='KBOS'):
         for line in lines[1:]:
             ll = line.split(',')
             if ll[0] in [str(wban)]:
-                fdate = ll[1][:4]+'-'+ll[1][4:6]+'-'+ll[1][6:]
-                keepers.append(','.join([str(iii),fdate,ll[-4],
-                                         ll[2],ll[4],ll[30]])+'\n')
+                fdate1 = ll[1][:4]+'-'+ll[1][4:6]+'-'+ll[1][6:]
+                fdatetime = datetime.strptime(fdate1,'%Y-%m-%d')
+                fdate = (fdatetime-timedelta(days=1)).strftime('%Y-%m-%d')
+                keepers.append(','.join([str(iii),fdate,
+                                         ll[-4].replace('M','NaN'),
+                                         ll[2].replace('M','NaN'),
+                                         ll[4].replace('M','NaN'),
+                                         ll[30].replace('M','NaN')])+'\n')
                 iii += 1
     with open('temp','w') as f:
         for line in keepers:

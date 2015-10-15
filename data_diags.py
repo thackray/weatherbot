@@ -11,8 +11,6 @@ dbfile = 'data/%s.db'%station
 
 db = pd.read_csv(dbfile, index_col=0, na_values='')
 
-print db.columns
-
 def scat(xx,yy,newfig=True):
     if newfig:
         pl.figure()
@@ -59,20 +57,26 @@ def calc_dist(db, vals, fields, weights):
 
 def get_nearest_n(db, vals, fields, weights, n=100):
     dist = calc_dist(db, vals, fields, weights)
-    return dist.argsort()[:n]
+    return dist.argsort()[:n].values
 
 def get_field_near(db, near, field):
-    return db[field][near]
+    return db[field][near].values
 
 #three_panel('Tmax')
 #three_panel('Tmin')
 
-aa, bb, cc = db['GFS_Tmax'][187],db['NAM_Tmax'][187],db['OBS_Tmax'][187]
-print aa, bb
-for pred, predval in zip(['GFS_Tmax','NAM_Tmax'],[aa,bb]):
-    near = get_nearest_n(db, [predval], [pred], [1.])
+err = []
+for day, true in enumerate(db['OBS_Tmax']):
+    near = get_nearest_n(db, 
+                         [db['GFS_Tmax'][day],db['NAM_Tmax'][day]],
+                         ['GFS_Tmax','NAM_Tmax'], 
+                         [1.,1.], n=100)
     obs = get_field_near(db, near, 'OBS_Tmax')
-    histy(cc, obs, 'OBS_Tmax')
-    
+    err.append(abs(np.median(obs) - true))
+
+print err
+                         
+pl.figure()
+pl.hist(err)
 
 pl.show()
