@@ -1,6 +1,9 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
+import sys
+
+station = sys.argv[1]
 
 aday = timedelta(days=1)
 
@@ -47,7 +50,9 @@ def read_raw_mos(mosfile,model='GFS'):
     with open(mosfile, 'r') as f:
         moslines = f.readlines()
     moslines = moslines[1:]
-    
+
+    stationname = mosfile.split('/')[2]
+
     interval = 21
     six1,six2 = 4,12
     linesleft = len(moslines)
@@ -69,10 +74,10 @@ def read_raw_mos(mosfile,model='GFS'):
     cols = [cols[0]]+[model+'_'+c for c in cols[1:]]
 
     DF = pd.DataFrame(data=db,columns=cols)
-    DF.to_csv('data/'+mosfile[:4]+'_'+model+'.csv')
+    DF.to_csv('data/'+stationname+'_'+model+'.csv')
     
-read_raw_mos('KBOS_gfs12z.csv',model='GFS')
-read_raw_mos('KBOS_nam12z.csv',model='NAM')
+read_raw_mos('data/mos/%s/%s_gfs12z.csv'%(station,station),model='GFS')
+read_raw_mos('data/mos/%s/%s_nam12z.csv'%(station,station),model='NAM')
         
         
 
