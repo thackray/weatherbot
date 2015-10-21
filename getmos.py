@@ -19,8 +19,8 @@ def parse_mos(moslines, model):
         if time[i] == '06':
             i6.append(i)
         i += 1
-    print i6
-    print moslines
+#    print i6
+#    print moslines
     nx = [getint(x) for x in moslines[4].split()]
     nx = nx[1:3]
     T = [getint(x) for x in moslines[5].split()[i6[0]:i6[1]+1]]
@@ -57,13 +57,13 @@ def getmos(sta):
     GFS = parse_mos(GFS, 'GFS')
     NAM = parse_mos(NAM, 'NAM')
 
-    print GFS
-    print NAM
+    out = GFS
+    out.update(NAM)
 
-    return GFS, NAM
+    return out
 
 
 if __name__=='__main__':
     sta = sys.argv[1]
 
-    getmos(sta)
+    print getmos(sta)
