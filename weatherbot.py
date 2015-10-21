@@ -9,8 +9,36 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
+from data_diags import get_weighted_estimate
+import sys
 
-base = datetime(2015,8,1)
-numdays = 365
-dates = [base - timedelta(days=x) for x in range(0,numdays)]
-print dates
+
+station = sys.argv[1]
+
+dbfile = 'data/%s.db'%station
+
+db = pd.read_csv(dbfile, index_col=0, na_values='')
+
+mask = np.isnan(db['OBS_Tmax'])+np.isnan(db['OBS_Tmin'])
+#mask = np.logical_not(mask)
+arr = np.where(mask)
+db['GFS_diratmax'] = np.cos(db['GFS_diratmax']*np.pi/180.)
+db['NAM_diratmax'] = np.cos(db['NAM_diratmax']*np.pi/180.)
+
+for aa in arr:
+    db = db.drop(aa)
+
+vals = [70,68,6,7,48,48]
+fields = ['GFS_Tmax','NAM_Tmax', 'GFS_windatmax', 'NAM_windatmax',
+          'GFS_dptatmax', 'NAM_dptatmax']
+high = get_weighted_estimate(db, 'OBS_Tmax', vals, fields, 
+                             weights = [1., 1., 0.5, 0.5, 1., 1.])
+
+vals = [51,52,3,2,47,48]
+fields = ['GFS_Tmin','NAM_Tmin', 'GFS_windatmin', 'NAM_windatmin',
+          'GFS_dptatmin', 'NAM_dptatmin']
+
+low = get_weighted_estimate(db, 'OBS_Tmin', vals, fields, 
+                             weights = [1., 1., 0.5, 0.5, 1., 1.])
+
+print high, low
