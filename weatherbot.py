@@ -5,13 +5,15 @@
 #       obs: Tmax, Tmin, windmax, precip
 # data frame: date, obs_Tmax, obs_Tmin, obs_wind, obs_precip, NAM_XXz_Tmax, NAM_XXz_Tmin, NAM_XXz_wind, NAM_XXz_winddir, NAM_XXz_precip, 
 #                   GFS_XXz_Tmax, ...
+
+import sys
+
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-from data_diags import get_weighted_estimate
-import sys
-
+from data_diags import get_weighted_estimate_plus
+from getmos import getmos
 
 station = sys.argv[1]
 
@@ -28,17 +30,26 @@ db['NAM_diratmax'] = np.cos(db['NAM_diratmax']*np.pi/180.)
 for aa in arr:
     db = db.drop(aa)
 
-vals = [70,68,6,7,48,48]
+MOS = getmos(station)
+
+
 fields = ['GFS_Tmax','NAM_Tmax', 'GFS_windatmax', 'NAM_windatmax',
           'GFS_dptatmax', 'NAM_dptatmax']
-high = get_weighted_estimate(db, 'OBS_Tmax', vals, fields, 
-                             weights = [1., 1., 0.5, 0.5, 1., 1.])
 
-vals = [51,52,3,2,47,48]
+vals = [MOS[field] for field in fields]
+
+high, hconf = get_weighted_estimate_plus(db, 'OBS_Tmax', vals, fields,
+                                         weights = [1., 1., 0.5, 0.5, 1., 1.])
+
+
+
 fields = ['GFS_Tmin','NAM_Tmin', 'GFS_windatmin', 'NAM_windatmin',
           'GFS_dptatmin', 'NAM_dptatmin']
 
-low = get_weighted_estimate(db, 'OBS_Tmin', vals, fields, 
-                             weights = [1., 1., 0.5, 0.5, 1., 1.])
+vals = [MOS[field] for field in fields]
 
-print high, low
+low, lconf = get_weighted_estimate_plus(db, 'OBS_Tmin', vals, fields, 
+                                        weights = [1., 1., 0.5, 0.5, 1., 1.])
+
+print high, hconf
+print low, lconf

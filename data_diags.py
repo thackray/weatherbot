@@ -85,6 +85,14 @@ def get_weighted_estimate(db, field, vals, preds, weights, n=100):
     est = np.sum(est1)/np.sum(np.exp(-dists))
     return est
 
+def get_weighted_estimate_plus(db, field, vals, preds, weights, n=100):
+    near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n)
+    obs = get_field_near(db, near, field)
+    est1 = obs*np.exp(-dists)
+    est = np.sum(est1)/np.sum(np.exp(-dists))
+    confidence = np.sum(np.exp(-dists))/n
+    return est, confidence
+
 def get_median_estimate(db, field, vals, preds, weights, n=100):
     near = get_nearest_n(db, vals, preds, weights, n=n)
     obs = get_field_near(db, near, field)
@@ -107,7 +115,21 @@ def get_hist_weighted(db, truth, predictors, weights, n=30):
         est = get_weighted_estimate(db, truth, vals, predictors, weights, n=n)
         err.append(abs(est - true))
     pl.figure()
-    pl.title(truth+' '.join(predictors))
+    pl.title(truth+' '+' '.join(predictors))
+    pl.hist(err, bins=range(0,16))
+    return err
+
+def get_hist_mos(db, truth, models):
+    err = []
+    for day, true in zip(db.index,db[truth]):
+        vals = [db[p][day] for p in models]
+        if len(vals) > 1:
+            est = np.mean(vals)
+        else:
+            est = vals[0]
+        err.append(abs(est - true))
+    pl.figure()
+    pl.title('mos '+truth+' '+' '.join(models))
     pl.hist(err, bins=range(0,16))
     return err
 
@@ -118,6 +140,11 @@ if __name__=='__main__':
     errr = get_hist_weighted(db, 'OBS_Tmin', 
                              ['GFS_Tmin','NAM_Tmin'],
                              [1.,1.])
+
+    get_hist_mos(db, 'OBS_Tmin', ['GFS_Tmin'])
+    get_hist_mos(db, 'OBS_Tmin', ['NAM_Tmin'])
+    get_hist_mos(db, 'OBS_Tmin', ['GFS_Tmin','NAM_Tmin'])
+
 
     get_hist_weighted(db, 'OBS_Tmin', 
                       ['GFS_Tmin','NAM_Tmin', 'GFS_windatmin', 'NAM_windatmin'],
@@ -139,6 +166,11 @@ if __name__=='__main__':
     get_hist_weighted(db, 'OBS_Tmax', 
                       ['GFS_Tmax','NAM_Tmax'],
                       [1.,1.])
+
+    get_hist_mos(db, 'OBS_Tmax', ['GFS_Tmax'])
+    get_hist_mos(db, 'OBS_Tmax', ['NAM_Tmax'])
+    get_hist_mos(db, 'OBS_Tmax', ['GFS_Tmax','NAM_Tmax'])
+
 
     get_hist_weighted(db, 'OBS_Tmax', 
                       ['GFS_Tmax','NAM_Tmax', 'GFS_windatmax', 'NAM_windatmax'],
