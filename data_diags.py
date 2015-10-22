@@ -65,33 +65,40 @@ def calc_dist(db, vals, fields, weights):
         dist += w*np.abs(val-db[field])
     return dist
 
-def get_nearest_n(db, vals, fields, weights, n=100):
-    dist = calc_dist(db, vals, fields, weights)
-    return dist.argsort()[:n].values
+def get_nearest_n(db, vals, fields, weights, n=100, xx=None):
+    if xx:
+        db.drop(xx)
+    dist = calc_dist(db, vals, fields, weights).values
+    return dist.argsort()[:n]
 
-def get_nearest_n_plus(db, vals, fields, weights, n=100):
-    dist = calc_dist(db, vals, fields, weights)
-    args = dist.argsort()[:n].values
+def get_nearest_n_plus(db, vals, fields, weights, n=100, xx=None):
+    if xx:
+        db.drop(xx)
+    dist = calc_dist(db, vals, fields, weights).values
+    args = dist.argsort()[:n]
     return args, dist[args]
 
 
 def get_field_near(db, near, field):
     return db[field][near].values
 
-def get_weighted_estimate(db, field, vals, preds, weights, n=100):
-    near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n)
+def get_weighted_estimate(db, field, vals, preds, weights, n=100,xx=None):
+    near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n, xx=xx)
     obs = get_field_near(db, near, field)
-    est1 = obs*np.exp(-dists)
-    est = np.sum(est1)/np.sum(np.exp(-dists))
+    est1 = obs*np.exp(-1*dists)
+    est = np.sum(est1)/np.sum(np.exp(-1*dists))
     return est
 
-def get_weighted_estimate_plus(db, field, vals, preds, weights, n=100):
-    near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n)
+def get_weighted_estimate_plus(db, field, vals, preds, weights, n=100,xx=None):
+    near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n,xx=xx)
     obs = get_field_near(db, near, field)
-    est1 = obs*np.exp(-dists)
-    est = np.sum(est1)/np.sum(np.exp(-dists))
-    confidence = np.sum(np.exp(-dists))/n
-    return est, confidence
+    weights = np.exp(-dists)
+    est1 = obs*weights
+    est = np.sum(est1)/np.sum(weights)
+    pref = np.sum(weights)/(np.sum(weights)**2.-np.sum(weights**2.))
+    #pref = 1/np.sum(weights)
+    confidence = np.sum(weights*((obs-est)**2))*pref
+    return est, confidence**0.5
 
 def get_median_estimate(db, field, vals, preds, weights, n=100):
     near = get_nearest_n(db, vals, preds, weights, n=n)
@@ -112,7 +119,8 @@ def get_hist_weighted(db, truth, predictors, weights, n=30):
     err = []
     for day, true in zip(db.index,db[truth]):
         vals = [db[p][day] for p in predictors]
-        est = get_weighted_estimate(db, truth, vals, predictors, weights, n=n)
+        est = get_weighted_estimate(db, truth, vals, predictors, weights, n=n,
+                                    xx=day)
         err.append(abs(est - true))
     pl.figure()
     pl.title(truth+' '+' '.join(predictors))
