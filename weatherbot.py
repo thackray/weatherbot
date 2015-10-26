@@ -37,19 +37,18 @@ fields = ['GFS_Tmax','NAM_Tmax', 'GFS_windatmax', 'NAM_windatmax',
           'GFS_dptatmax', 'NAM_dptatmax']
 
 vals = [MOS[field] for field in fields]
-
 high, hconf = get_weighted_estimate_plus(db, 'OBS_Tmax', vals, fields,
-                                         weights = [1., 1., 0.5, 0.5, 1., 1.])
-
+                                         weights = [1., 1., 0.5, 0.5, 1., 1.],
+                                         n=30)
 
 
 fields = ['GFS_Tmin','NAM_Tmin', 'GFS_windatmin', 'NAM_windatmin',
           'GFS_dptatmin', 'NAM_dptatmin']
 
 vals = [MOS[field] for field in fields]
-
 low, lconf = get_weighted_estimate_plus(db, 'OBS_Tmin', vals, fields, 
-                                        weights = [1., 1., 0.5, 0.5, 1., 1.])
+                                        weights = [1., 1., 0.5, 0.5, 1., 1.],
+                                        n=30)
 
 print high, hconf
 print low, lconf
