@@ -5,21 +5,6 @@ import numpy as np
 import numpy.ma as ma
 from scipy.stats import linregress
 
-station = sys.argv[1]
-
-dbfile = 'data/%s.db'%station
-
-db = pd.read_csv(dbfile, index_col=0, na_values='')
-
-mask = np.isnan(db['OBS_Tmax'])+np.isnan(db['OBS_Tmin'])
-#mask = np.logical_not(mask)
-arr = np.where(mask)
-db['GFS_diratmax'] = np.cos(db['GFS_diratmax']*np.pi/180.)
-db['NAM_diratmax'] = np.cos(db['NAM_diratmax']*np.pi/180.)
-
-#print arr
-for aa in arr:
-    db = db.drop(aa)
 
 def scat(xx,yy,newfig=True):
     if newfig:
@@ -59,14 +44,11 @@ def three_panel(var):
     
 def calc_dist(db, vals, fields, weights):
     dist = weights[0]*np.abs(vals[0]-db[fields[0]].values)
-    print dist
     if len(vals) == 1:
         return dist
     for val,field,w in zip(vals,fields,weights)[1:]:
         dd = w*np.abs(val-db[field].values)
-        print dd
         dist += dd
-    print dist
     return dist
 
 def get_nearest_n(db, vals, fields, weights, n=100):
@@ -158,6 +140,20 @@ def tabview(db,near,dists,fields):
     return string
 
 if __name__=='__main__':
+
+    station = sys.argv[1]
+
+    dbfile = 'data/%s.db'%station
+
+    db = pd.read_csv(dbfile, index_col=0, na_values='')
+
+    mask = np.isnan(db['OBS_Tmax'])+np.isnan(db['OBS_Tmin'])
+    #mask = np.logical_not(mask)
+    arr = np.where(mask)
+    db['GFS_diratmax'] = np.cos(db['GFS_diratmax']*np.pi/180.)
+    db['NAM_diratmax'] = np.cos(db['NAM_diratmax']*np.pi/180.)
+
+
     three_panel('Tmax')
     three_panel('Tmin')
 
