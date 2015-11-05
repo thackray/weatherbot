@@ -58,39 +58,47 @@ def three_panel(var):
     scat('NAM_%s'%var,'OBS_%s'%var,newfig=False)
     
 def calc_dist(db, vals, fields, weights):
-    dist = weights[0]*np.abs(vals[0]-db[fields[0]])
+    dist = weights[0]*np.abs(vals[0]-db[fields[0]].values)
+    print dist
     if len(vals) == 1:
         return dist
     for val,field,w in zip(vals,fields,weights)[1:]:
-        dist += w*np.abs(val-db[field])
+        dd = w*np.abs(val-db[field].values)
+        print dd
+        dist += dd
+    print dist
     return dist
 
-def get_nearest_n(db, vals, fields, weights, n=100, xx=None):
+def get_nearest_n(db, vals, fields, weights, n=100):
     if xx:
         db.drop(xx)
-    dist = calc_dist(db, vals, fields, weights).values
+    dist = calc_dist(db, vals, fields, weights)
     return dist.argsort()[:n]
 
 def get_nearest_n_plus(db, vals, fields, weights, n=100, xx=None):
+    dist = calc_dist(db, vals, fields, weights)
     if xx:
-        db.drop(xx)
-    dist = calc_dist(db, vals, fields, weights).values
-    args = dist.argsort()[:n]
+        args = dist.argsort()[1:n+1]
+    else:
+        args = dist.argsort()[:n]
     return args, dist[args]
 
 
 def get_field_near(db, near, field):
     return db[field][near].values
 
-def get_weighted_estimate(db, field, vals, preds, weights, n=100,xx=None):
-    near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n, xx=xx)
+def get_weighted_estimate(db, field, vals, preds, weights, n=100, xx=None):
+    near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n,xx=xx)
     obs = get_field_near(db, near, field)
     est1 = obs*np.exp(-1*dists)
     est = np.sum(est1)/np.sum(np.exp(-1*dists))
     return est
 
-def get_weighted_estimate_plus(db, field, vals, preds, weights, n=100,xx=None):
+def get_weighted_estimate_plus(db, field, vals, preds, weights, n=100,xx=None,
+                               verbose=False):
     near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n,xx=xx)
+    if verbose:
+        print tabview(db,near,dists,preds+[field])
     obs = get_field_near(db, near, field)
     weights = np.exp(-dists)
     est1 = obs*weights
@@ -140,6 +148,14 @@ def get_hist_mos(db, truth, models):
     pl.title('mos '+truth+' '+' '.join(models))
     pl.hist(err, bins=range(0,16))
     return err
+
+def tabview(db,near,dists,fields):
+    string = ' dist  '
+    string += ' '.join([f.ljust(14) for f in fields])+'\n'
+    for i,d in zip(near,dists):
+        string += str(d).ljust(7)
+        string +=  ' '.join([str(db[field][i]).ljust(14) for field in fields]) + '\n' 
+    return string
 
 if __name__=='__main__':
     three_panel('Tmax')
