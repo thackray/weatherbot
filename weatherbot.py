@@ -37,7 +37,7 @@ vals = [MOS[field] for field in fields]
 print fields
 print vals
 high, hconf = get_weighted_estimate_plus(db, 'OBS_Tmax', vals, fields,
-                                         weights = [1., 1., 0.2, 0.2, 0.4, 0.4],
+                                         weights = [1., 1., 0.5, 0.5, 0.5, 0.5],
                                          n=15, verbose=True)
 
 
@@ -48,7 +48,7 @@ vals = [MOS[field] for field in fields]
 print fields
 print vals
 low, lconf = get_weighted_estimate_plus(db, 'OBS_Tmin', vals, fields, 
-                                        weights = [1., 1., 0.2, 0.2, .4, .4],
+                                        weights = [1., 1., 0.5, 0.5, .5, .5],
                                         n=15, verbose=True)
 
 print 'High',int(round(high)), '+/-', int(round(hconf))

@@ -69,20 +69,21 @@ def get_nearest_n_plus(db, vals, fields, weights, n=100, xx=None):
 def get_field_near(db, near, field):
     return db[field][near].values
 
-def get_weighted_estimate(db, field, vals, preds, weights, n=100, xx=None):
+def get_weighted_estimate(db, field, vals, preds, weights, n=100, xx=None,
+                          gamma=4.):
     near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n,xx=xx)
     obs = get_field_near(db, near, field)
-    est1 = obs*np.exp(-1*dists)
-    est = np.sum(est1)/np.sum(np.exp(-1*dists))
+    est1 = obs*np.exp(-gamma*dists)
+    est = np.sum(est1)/np.sum(np.exp(-gamma*dists))
     return est
 
 def get_weighted_estimate_plus(db, field, vals, preds, weights, n=100,xx=None,
-                               verbose=False):
+                               verbose=False, gamma=4.):
     near, dists = get_nearest_n_plus(db, vals, preds, weights, n=n,xx=xx)
     if verbose:
         print tabview(db,near,dists,preds+[field])
     obs = get_field_near(db, near, field)
-    weights = np.exp(-dists)
+    weights = np.exp(-gamma*dists)
     est1 = obs*weights
     est = np.sum(est1)/np.sum(weights)
     pref = np.sum(weights)/(np.sum(weights)**2.-np.sum(weights**2.))
@@ -105,12 +106,12 @@ def get_hist(db, truth, predictors, weights, n=30):
     pl.title(' '.join(predictors))
     pl.hist(err, bins=range(0,16))
 
-def get_hist_weighted(db, truth, predictors, weights, n=30):
+def get_hist_weighted(db, truth, predictors, weights, n=15, gamma=4.):
     err = []
     for day, true in zip(db.index,db[truth]):
         vals = [db[p][day] for p in predictors]
         est = get_weighted_estimate(db, truth, vals, predictors, weights, n=n,
-                                    xx=day)
+                                    xx=day, gamma=gamma)
         err.append(abs(est - true))
     pl.figure()
     pl.title(truth+' '+' '.join(predictors))
@@ -153,61 +154,64 @@ if __name__=='__main__':
     db['GFS_diratmax'] = np.cos(db['GFS_diratmax']*np.pi/180.)
     db['NAM_diratmax'] = np.cos(db['NAM_diratmax']*np.pi/180.)
 
+    wT, wdpt, ww = 1., 0.5, 0.25
 
     three_panel('Tmax')
     three_panel('Tmin')
 
-    errr = get_hist_weighted(db, 'OBS_Tmin', 
-                             ['GFS_Tmin','NAM_Tmin'],
-                             [1.,1.])
+    get_hist_weighted(db, 'OBS_Tmin', 
+                      ['GFS_Tmin','NAM_Tmin'],
+                      [wT,wT], gamma=4.)
 
-    get_hist_mos(db, 'OBS_Tmin', ['GFS_Tmin'])
-    get_hist_mos(db, 'OBS_Tmin', ['NAM_Tmin'])
+
+#    get_hist_mos(db, 'OBS_Tmin', ['GFS_Tmin'])
+#    get_hist_mos(db, 'OBS_Tmin', ['NAM_Tmin'])
     get_hist_mos(db, 'OBS_Tmin', ['GFS_Tmin','NAM_Tmin'])
 
 
-    get_hist_weighted(db, 'OBS_Tmin', 
-                      ['GFS_Tmin','NAM_Tmin', 'GFS_windatmin', 'NAM_windatmin'],
-                      [1.,1.,0.5,0.5])
+#    get_hist_weighted(db, 'OBS_Tmin', 
+#                      ['GFS_Tmin','NAM_Tmin', 'GFS_windatmin', 'NAM_windatmin'],
+#                      [wT,wT,ww,ww])
 
-    get_hist_weighted(db, 'OBS_Tmin', 
-                      ['GFS_Tmin','NAM_Tmin', 'GFS_windatmin', 'NAM_windatmin',
-                       'GFS_dptatmin', 'NAM_dptatmin'],
-                      [1.,1.,0.5,0.5,1.,1.])
+#    get_hist_weighted(db, 'OBS_Tmin', 
+#                      ['GFS_Tmin','NAM_Tmin', 'GFS_windatmin', 'NAM_windatmin',
+#                       'GFS_dptatmin', 'NAM_dptatmin'],
+#                      [wT,wT,ww,ww,wdpt,wdpt])
 
-    get_hist_weighted(db, 'OBS_Tmin', 
-                      ['GFS_Tmin','NAM_Tmin', 'GFS_dptatmin', 'NAM_dptatmin'],
-                      [1.,1.,.5,.5])
+#    get_hist_weighted(db, 'OBS_Tmin', 
+#                      ['GFS_Tmin','NAM_Tmin', 'GFS_dptatmin', 'NAM_dptatmin'],
+#                      [wT,wT,wdpt,wdpt])
 
-    get_hist_weighted(db, 'OBS_Tmin', 
-                      ['GFS_Tmin','NAM_Tmin','GFS_Tmax','NAM_Tmax'],
-                      [1.,1.,.5,.5])
+#    get_hist_weighted(db, 'OBS_Tmin', 
+#                      ['GFS_Tmin','NAM_Tmin','GFS_Tmax','NAM_Tmax'],
+#                      [wT,wT,wT,wT])
 
     get_hist_weighted(db, 'OBS_Tmax', 
                       ['GFS_Tmax','NAM_Tmax'],
-                      [1.,1.])
+                      [wT,wT], gamma=4.)
 
-    get_hist_mos(db, 'OBS_Tmax', ['GFS_Tmax'])
-    get_hist_mos(db, 'OBS_Tmax', ['NAM_Tmax'])
+
+#    get_hist_mos(db, 'OBS_Tmax', ['GFS_Tmax'])
+#    get_hist_mos(db, 'OBS_Tmax', ['NAM_Tmax'])
     get_hist_mos(db, 'OBS_Tmax', ['GFS_Tmax','NAM_Tmax'])
 
 
-    get_hist_weighted(db, 'OBS_Tmax', 
-                      ['GFS_Tmax','NAM_Tmax', 'GFS_windatmax', 'NAM_windatmax'],
-                      [1.,1.,0.5,0.5])
+#    get_hist_weighted(db, 'OBS_Tmax', 
+#                      ['GFS_Tmax','NAM_Tmax', 'GFS_windatmax', 'NAM_windatmax'],
+#                      [wT,wT,ww,ww])
 
-    get_hist_weighted(db, 'OBS_Tmax', 
-                      ['GFS_Tmax','NAM_Tmax', 'GFS_windatmax', 'NAM_windatmax',
-                       'GFS_dptatmax', 'NAM_dptatmax'],
-                      [1.,1.,0.5,0.5,1.,1.])
+#    get_hist_weighted(db, 'OBS_Tmax', 
+#                      ['GFS_Tmax','NAM_Tmax', 'GFS_windatmax', 'NAM_windatmax',
+#                       'GFS_dptatmax', 'NAM_dptatmax'],
+#                      [wT,wT,ww,ww,wdpt,wdpt])
 
-    get_hist_weighted(db, 'OBS_Tmax', 
-                      ['GFS_Tmax','NAM_Tmax', 'GFS_dptatmax', 'NAM_dptatmax'],
-                      [1.,1.,.5,.5])
+#    get_hist_weighted(db, 'OBS_Tmax', 
+#                      ['GFS_Tmax','NAM_Tmax', 'GFS_dptatmax', 'NAM_dptatmax'],
+#                      [wT,wT,wdpt,wdpt])
 
-    get_hist_weighted(db, 'OBS_Tmax', 
-                      ['GFS_Tmin','NAM_Tmin','GFS_Tmax','NAM_Tmax'],
-                      [1.,1.,.5,.5])
+#    get_hist_weighted(db, 'OBS_Tmax', 
+#                      ['GFS_Tmin','NAM_Tmin','GFS_Tmax','NAM_Tmax'],
+#                      [wT,wT,wT,wT])
 
 
     pl.show()
