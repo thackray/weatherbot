@@ -39,9 +39,14 @@ def process_chunk(chunk):
     avgdpt = np.mean(dpt)
     dptatmin = dpt[mindex]
     dptatmax = dpt[maxdex]
-    
+    try:
+        diurnalflag = Tmin == min(nx)
+    except ValueError:
+        diurnalflag = False
+
     return  [fdate, Tmin, Tmax, avgwind, windatmin, windatmax,
-              diratmin, diratmax, avgdpt, dptatmin, dptatmax]
+              diratmin, diratmax, avgdpt, dptatmin, dptatmax,
+             diurnalflag]
 
 
     
@@ -69,7 +74,8 @@ def read_raw_mos(mosfile,model='GFS'):
 
     db = np.array(newdblines)
     cols = ['fdate', 'Tmin', 'Tmax', 'avgwind', 'windatmin', 'windatmax',
-            'diratmin', 'diratmax', 'avgdpt', 'dptatmin', 'dptatmax']
+            'diratmin', 'diratmax', 'avgdpt', 'dptatmin', 'dptatmax',
+            'diurnal']
 
     cols = [cols[0]]+[model+'_'+c for c in cols[1:]]
 

@@ -12,7 +12,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
-from data_diags import get_weighted_estimate_plus
+from data_diags import get_weighted_estimate_pluser
 from getmos import getmos
 
 station = sys.argv[1]
@@ -30,28 +30,31 @@ db['NAM_diratmax'] = np.cos(db['NAM_diratmax']*np.pi/180.)
 MOS = getmos(station)
 
 
-fields = ['GFS_Tmax','NAM_Tmax', 'GFS_windatmax', 'NAM_windatmax',
-          'GFS_dptatmax', 'NAM_dptatmax']
+fields = ['GFS_Tmax','NAM_Tmax']#, 'GFS_windatmax', 'NAM_windatmax',
+#          'GFS_dptatmax', 'NAM_dptatmax']
 
 vals = [MOS[field] for field in fields]
 print fields
 print vals
-high, hconf = get_weighted_estimate_plus(db, 'OBS_Tmax', vals, fields,
-                                         weights = [1., 1., 0.5, 0.5, 0.5, 0.5],
-                                         n=15, verbose=True)
+high, hconf, hh = get_weighted_estimate_pluser(db, 'OBS_Tmax', vals, fields,
+                                         weights = [1., 1.],# 0.5, 0.5, 
+                                                    #0.25, 0.25],
+                                         n=15, verbose=True, gamma=2.)
 
 
-fields = ['GFS_Tmin','NAM_Tmin', 'GFS_windatmin', 'NAM_windatmin',
-          'GFS_dptatmin', 'NAM_dptatmin']
+fields = ['GFS_Tmin','NAM_Tmin']#, 'GFS_windatmin', 'NAM_windatmin',
+ #         'GFS_dptatmin', 'NAM_dptatmin']
 
 vals = [MOS[field] for field in fields]
 print fields
 print vals
-low, lconf = get_weighted_estimate_plus(db, 'OBS_Tmin', vals, fields, 
-                                        weights = [1., 1., 0.5, 0.5, .5, .5],
-                                        n=15, verbose=True)
+low, lconf, ll = get_weighted_estimate_pluser(db, 'OBS_Tmin', vals, fields, 
+                                        weights = [1., 1.],# 0.5, 0.5, 
+                                                   #.25, .25],
+                                        n=15, verbose=True, gamma=2.)
 
 print 'High',int(round(high)), '+/-', int(round(hconf))
+print hh
 print 'Low',int(round(low)), '+/-', int(round(lconf))
-
+print ll
 
