@@ -7,23 +7,24 @@ from scipy.stats import linregress
 
 
 def scat(db,xx,yy,newfig=True):
+    xxx = db[xx].values
+    yyy = db[yy].values
     if newfig:
         pl.figure()
-    pl.scatter(db[xx],db[yy])
-    pl.xlim(min(min(db[xx]),min(db[yy])),max(max(db[xx]),max(db[yy])))
-    pl.ylim(min(min(db[xx]),min(db[yy])),max(max(db[xx]),max(db[yy])))
+    pl.scatter(xxx,yyy)
+    pl.xlim(min(min(xxx),min(yyy)),max(max(xxx),max(yyy)))
+    #pl.ylim(min(min(xxx),min(yyy)),max(max(xxx),max(yyy)))
     pl.xlabel(xx,fontsize=20)
     pl.ylabel(yy,fontsize=20)
-    mask = np.isnan(db[xx])+np.isnan(db[yy])
-    mask = np.logical_not(mask)
-    arr = np.where(mask)
-    m,yint,r,p,e = linregress(np.array(db[xx])[arr],
-                              np.array(db[yy])[arr])
-    pl.plot(db[xx], db[xx]*m+yint, lw=3, color='k',
+   # mask = np.isnan(xxx)+np.isnan(yyy)
+   # mask = np.logical_not(mask)
+   # arr = np.where(mask)
+    m,yint,r,p,e = linregress(np.array(xxx)[:],
+                              np.array(yyy)[:])
+    x = np.arange(min(db[xx]),max(db[xx]))
+    pl.plot(x, x*m+yint, lw=3, color='k',
             label='slope = %.2f  yint = %.2f'%(m,yint))
-    pl.plot(np.arange(min(db[xx]),max(db[xx])),
-            np.arange(min(db[xx]),max(db[xx])),
-            'k--',lw=3)
+    #pl.plot(x,x,'k--',lw=3)
     pl.legend(loc='upper left')
     
 def histy(true, vals, field, newfig=True):
@@ -129,10 +130,10 @@ def get_hist_weighted(db, truth, predictors, weights, n=15, gamma=4.):
             est = get_weighted_estimate(db, truth, vals, 
                                         predictors, weights, n=n,
                                         xx=day, gamma=gamma)
-            err.append(abs(est - true))
+            err.append((true-est))
     pl.figure()
     pl.title(truth+' '+' '.join(predictors))
-    pl.hist(err, bins=range(0,16))
+    pl.hist(err, bins=np.arange(-10,10))
     return err
 
 def get_hist_mos(db, truth, models):
@@ -143,10 +144,10 @@ def get_hist_mos(db, truth, models):
             est = np.mean(vals)
         else:
             est = vals[0]
-        err.append(abs(est - true))
+        err.append(true-est)
     pl.figure()
     pl.title('mos '+truth+' '+' '.join(models))
-    pl.hist(err, bins=range(0,16))
+    pl.hist(err, bins=np.arange(-10,10))
     return err
 
 def tabview(db,near,dists,fields):
@@ -224,9 +225,9 @@ if __name__=='__main__':
                       [wT,wT,ww,ww,wdpt,wdpt],
                       gamma=2.)
 
-#    get_hist_weighted(db, 'OBS_Tmax', 
-#                      ['GFS_Tmax','NAM_Tmax', 'GFS_dptatmax', 'NAM_dptatmax'],
-#                      [wT,wT,wdpt,wdpt])
+    get_hist_weighted(db, 'OBS_maxwind', 
+                      ['GFS_avgwind', 'NAM_avgwind'],
+                      [1.,1.])
 
 #    get_hist_weighted(db, 'OBS_Tmax', 
 #                      ['GFS_Tmin','NAM_Tmin','GFS_Tmax','NAM_Tmax'],

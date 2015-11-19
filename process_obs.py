@@ -3,8 +3,8 @@ import numpy as np
 import os
 from datetime import datetime, timedelta
 
-wban = '04781'
-station = 'KISP'
+wban = '12842'
+station = 'KTPA'
 iii = 0
 def read_raw_obs(obsfile,wban=14739,station='KBOS'):
     global iii

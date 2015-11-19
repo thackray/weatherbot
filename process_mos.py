@@ -39,14 +39,38 @@ def process_chunk(chunk):
     avgdpt = np.mean(dpt)
     dptatmin = dpt[mindex]
     dptatmax = dpt[maxdex]
+    
+    cldfracs = []
+    for c in cld:
+        if c == 'CL':
+            cldfracs.append(0.)
+        elif c == 'SC':
+            cldfracs.append(0.25)
+        elif c == 'FW':
+            cldfracs.append(0.5)
+        elif c == 'BK':
+            cldfracs.append(0.75)
+        elif c == 'OV':
+            cldfracs.append(1.)
+        else:
+            cldfracs.append(1.)
+        
+    cfatmax = cldfracs[maxdex]
+    cfatmin = cldfracs[mindex]
+    cfavg = np.mean(cldfracs)
+
     try:
         diurnalflag = Tmin == min(nx)
     except ValueError:
         diurnalflag = False
+    try:
+        Hdiurnalflag = Tmax == max(nx)
+    except ValueError:
+        Hdiurnalflag = False
 
     return  [fdate, Tmin, Tmax, avgwind, windatmin, windatmax,
               diratmin, diratmax, avgdpt, dptatmin, dptatmax,
-             diurnalflag]
+             diurnalflag, Hdiurnalflag, cfatmax, cfatmin, cfavg]
 
 
     
@@ -75,7 +99,7 @@ def read_raw_mos(mosfile,model='GFS'):
     db = np.array(newdblines)
     cols = ['fdate', 'Tmin', 'Tmax', 'avgwind', 'windatmin', 'windatmax',
             'diratmin', 'diratmax', 'avgdpt', 'dptatmin', 'dptatmax',
-            'diurnal']
+            'diurnal','diurnal_high', 'cfatmax','cfatmin','cfavg']
 
     cols = [cols[0]]+[model+'_'+c for c in cols[1:]]
 
