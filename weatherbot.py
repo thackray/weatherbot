@@ -30,28 +30,28 @@ db['NAM_diratmax'] = np.cos(db['NAM_diratmax']*np.pi/180.)
 MOS = getmos(station)
 
 
-fields = ['GFS_Tmax','NAM_Tmax']#, 'GFS_windatmax', 'NAM_windatmax',
+fields = ['GFS_Tmax','NAM_Tmax', 'GFS_cfatmax', 'NAM_cfatmax']
 #          'GFS_dptatmax', 'NAM_dptatmax']
 
 vals = [MOS[field] for field in fields]
 print fields
 print vals
 high, hconf, hh = get_weighted_estimate_pluser(db, 'OBS_Tmax', vals, fields,
-                                         weights = [1., 1.],# 0.5, 0.5, 
+                                               weights = [1., 1.,4.,4.],# 0.5, 0.5, 
                                                     #0.25, 0.25],
-                                         n=15, verbose=True, gamma=2.)
+                                         n=15, verbose=True, gamma=4.)
 
 
-fields = ['GFS_Tmin','NAM_Tmin']#, 'GFS_windatmin', 'NAM_windatmin',
+fields = ['GFS_Tmin','NAM_Tmin', 'GFS_cfatmin', 'NAM_cfatmin']
  #         'GFS_dptatmin', 'NAM_dptatmin']
 
 vals = [MOS[field] for field in fields]
 print fields
 print vals
 low, lconf, ll = get_weighted_estimate_pluser(db, 'OBS_Tmin', vals, fields, 
-                                        weights = [1., 1.],# 0.5, 0.5, 
+                                              weights = [1., 1.,4.,4.],# 0.5, 0.5, 
                                                    #.25, .25],
-                                        n=15, verbose=True, gamma=2.)
+                                        n=15, verbose=True, gamma=4.)
 
 print 'High',int(round(high)), '+/-', int(round(hconf))
 print hh

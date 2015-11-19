@@ -31,15 +31,47 @@ def parse_mos(moslines, model):
     dpt = [getint(x) for x in moslines[6].split()[i6[0]:i6[1]+1]]
     dptatmin = dpt[ilow]
     dptatmax = dpt[ihigh]
+    cld = moslines[7].split()[i6[0]:i6[1]+1]
     wsp = [getint(x) for x in moslines[9].split()[i6[0]:i6[1]+1]]
     windatmin = wsp[ilow]
     windatmax = wsp[ihigh]
+    if min(nx) == low:
+        diurnal = True
+    else:
+        diurnal = False
+    if max(nx) == high:
+        Hdiurnal = True
+    else:
+        Hdiurnal = False
+    
+    cldfracs = []
+    for c in cld:
+        if c == 'CL':
+            cldfracs.append(0.)
+        elif c == 'SC':
+            cldfracs.append(0.25)
+        elif c == 'FW':
+            cldfracs.append(0.5)
+        elif c == 'BK':
+            cldfracs.append(0.75)
+        elif c == 'OV':
+            cldfracs.append(1.)
+        else:
+            cldfracs.append(1.)
+        
+    cfatmax = cldfracs[ihigh]
+    cfatmin = cldfracs[ilow]
+
 
     return {'%s_Tmin'%model:low, '%s_Tmax'%model:high, 
             '%s_dptatmin'%model:dptatmin, 
             '%s_dptatmax'%model:dptatmax, 
             '%s_windatmin'%model:windatmin, 
-            '%s_windatmax'%model:windatmax}
+            '%s_windatmax'%model:windatmax,
+            '%s_diurnal'%model:diurnal,
+            '%s_diurnal_high'%model:Hdiurnal,
+            '%s_cfatmax'%model:cfatmax,
+            '%s_cfatmin'%model:cfatmin}
 
 
 def getmos(sta):
